@@ -78,7 +78,7 @@ for doc in documents:
     # Append the results to the training list
     training.append([bag, output_list])
 
-# Shuffle list and turn into an np array(what is this?)
+# Shuffle list and turn into an numpy array(what is this?)
 random.shuffle(training)
 training = np.array(training)
 
@@ -108,5 +108,8 @@ model = tflearn.DNN(net, tensorboard_dir='tflearn_logs')
 model.fit(train_x, train_y, n_epoch=1000, batch_size=8, show_metric=True)
 # Save model
 model.save('model.tflearn')
+
+import pickle
+pickle.dump({'train_x': train_x, 'train_y': train_y, 'words': words, 'classes': classes}, open('training_data','wb'));
 
 
