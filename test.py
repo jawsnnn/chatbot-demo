@@ -51,3 +51,62 @@ words = sorted(list(set(words)))
 for w in words:
     print("Words are ",w)
 
+# Unique, sorted list of classes
+classes = sorted(list(set(classes)))
+
+# Create training data set as a bag of words representing sentences/documents
+#  + a one live array of intents
+training = []
+# This is the initialization of the one-live array
+output_empty=[0]*len(classes)
+
+# Iterate through each sentence, creating the bag of words
+for doc in documents:
+    # Initialize bag of words
+    bag=[]
+    pattern_words = [stemmer.stem(w) for w in doc[0]]
+    # Populate bag of words for each possible word in corpus
+    # Turning on where word exists in current doc, and off where it doesn't
+    for w in words:
+        bag.append(1) if w in pattern_words else bag.append(0)
+    
+    # Take a copy of the original template list for this document
+    output_list = list(output_empty)
+    # Turn on the index of the current document's tag 
+    output_list[classes.index(doc[1])] = 1
+
+    # Append the results to the training list
+    training.append([bag, output_list])
+
+# Shuffle list and turn into an np array(what is this?)
+random.shuffle(training)
+training = np.array(training)
+
+# Create training and testing lists
+train_x=list(training[:,0])
+train_y=list(training[:,1])
+
+print("First element of training_set x",train_x[0])
+print("First element of training_set y",train_y[0])
+
+# This part I Don't understand
+# Reset the underlying graph data
+tf.reset_default_graph()
+# Build neural network
+# Input layer
+net = tflearn.input_data(shape=[None, len(train_x[0])])
+# Next layer
+net = tflearn.fully_connected(net, 8)
+net = tflearn.fully_connected(net, 8)
+# Output layer
+net = tflearn.fully_connected(net, len(train_y[0]), activation = 'softmax')
+net = tflearn.regression(net)
+
+# Define model and setup tensorboard
+model = tflearn.DNN(net, tensorboard_dir='tflearn_logs')
+# Start training (apply gradient descent algorithm)
+model.fit(train_x, train_y, n_epoch=1000, batch_size=8, show_metric=True)
+# Save model
+model.save('model.tflearn')
+
+
