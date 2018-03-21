@@ -66,15 +66,15 @@ def bow(sentence, words, show_details=False):
 # print(classes)
 
 # Classification starts
-# Placeholder for storing context
+# Placeholder for storing context for users
 context = {}
 
 ERROR_THRESHOLD=0.25
 def classify(sentence):
     # Store probability results of model prediction
     results = model.predict([bow(sentence, words)])[0]
-    for i, r in enumerate(results):
-        print(classes[i], r)
+    # for i, r in enumerate(results):
+        # print(classes[i], r)
     # Filter out predictions below a level
     results = [[i,r] for i, r in enumerate(results) if r > ERROR_THRESHOLD]
     # Sort by probability desc
@@ -86,4 +86,29 @@ def classify(sentence):
     # Return tuple of intent and probability
     return return_list
 
-print(classify("Is your shop open today?"))
+print(classify("Are you shop open today?"))
+
+# Now we will prepare a response
+def response(sentence, userid=123, show_details=False):
+    # Classify input
+    results = classify(sentence)
+    # Check is non empty
+    if results:
+        # Loop through the entire set
+        while results:
+            for i in intents['intents']:
+                # Find a tag matching the first results
+                if i['tag'] == results[0][0]:
+                    # Set context if necessary
+                    if 'context_set' in i:
+                        if show_details: print('context:', i['context_set']) 
+                        context[userid] = i['context_set']
+
+                    # Check if this tag is contextual and applies to this user's convo
+                    if not 'context_filter' in i or \
+                        (userid in context and 'context_filter' in i and i['context_filter'] == context[userid]) :
+                        if show_details: 
+                            print ('tag:', i['tag'])
+                        # Show a random response from list of valid responses
+                        return print(random.choice(i['responses']))
+            results.pop()
